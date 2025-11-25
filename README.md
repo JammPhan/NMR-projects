@@ -1,5 +1,7 @@
-Simulates relaxation times in NMR by numerically solving Bloch equations.
+Starter:
 
-Creates a synthetic FID signal and performs Fourier transform on signal.
+  Simulates relaxation times in NMR by numerically solving Bloch equations.
 
-Respective outputs of graphs can be found in pngs
+  Creates a synthetic FID signal and performs Fourier transform on signal.
+
+  Respective outputs of graphs can be found in pngs
