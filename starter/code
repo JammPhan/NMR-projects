@@ -1,0 +1,69 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+
+#simulates relaxation times T1 and T2 by numerically solving Bloch equations
+
+
+def bloch_relaxation(T1, T2, M0=1.0, dt=1e-3, nsteps=1000):
+    gamma = 2 * np.pi * 42.577e6  # rad/s/T (proton)
+    B0 = 1.0  # T
+    Mx, My, Mz = np.ones(nsteps), np.zeros(nsteps), np.zeros(nsteps)
+    Mz[0] = 0.0
+    for i in range(1, nsteps):
+        Mx[i] = Mx[i-1] - dt * Mx[i-1]/T2
+        My[i] = My[i-1] - dt * My[i-1]/T2
+        Mz[i] = Mz[i-1] + dt * (M0 - Mz[i-1])/T1
+    t = np.arange(nsteps) * dt
+    return t, Mx, My, Mz
+
+
+T1, T2 = 1.0, 0.3  # seconds
+t, Mx, My, Mz = bloch_relaxation(T1, T2)
+
+plt.figure()
+plt.plot(t, Mz, label='Mz (longitudinal)')
+plt.plot(t, Mx, label='Mx (transverse)')
+plt.plot(t, My, label='My (transverse)')
+plt.xlabel('Time (s)')
+plt.ylabel('Magnetization (arb units)')
+plt.title('Bloch Relaxation Simulation')
+plt.legend()
+plt.tight_layout()
+plt.show(block=True)
+
+# produces a synthetic FID signal then applies Fourier transform on signal
+
+def simulate_fid(T2, w0=1000.0, dt=1e-3, nsteps=1000, noise_amp=0.0):
+    
+    t = np.arange(nsteps) * dt
+    fid = np.exp(-t/T2) * np.cos(w0 * t)
+    fid += noise_amp * np.random.randn(nsteps)
+    return t, fid
+
+
+T2_fid = 0.1  # s
+w0 = 100.0  # rad/s
+t_fid, fid = simulate_fid(T2_fid, w0, dt=1e-3, nsteps=1000, noise_amp=0.01)
+
+plt.figure()
+plt.plot(t_fid, fid)
+plt.xlabel('Time (s)')
+plt.ylabel('FID amplitude')
+plt.title('Simulated Free Induction Decay')
+plt.tight_layout()
+plt.show(block=True)
+
+# Fourier transform to get NMR spectrum
+spectrum = np.abs(fft(fid))
+freqs = fftfreq(len(fid), d=1e-3)  # Hz
+
+
+plt.figure()
+plt.plot(freqs[:len(freqs)//2], spectrum[:len(freqs)//2])
+plt.xlabel('Frequency (Hz)')
+plt.ylabel('Amplitude')
+plt.title('NMR Spectrum (from FID)')
+plt.tight_layout()
+plt.show(block=True)
